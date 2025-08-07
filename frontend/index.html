@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Suporte Técnico Cisco - Multi-Agent</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .agent-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .agent-icon {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .agent-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .reasoning {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 3px solid #28a745;
+        }
+
+        .findings, .recommendations {
+            margin-bottom: 15px;
+        }
+
+        .findings h4, .recommendations h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .findings ul, .recommendations ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .findings li, .recommendations li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .findings li:before {
+            content: "🔍";
+            position: absolute;
+            left: 0;
+        }
+
+        .recommendations li:before {
+            content: "💡";
+            position: absolute;
+            left: 0;
+        }
+
+        .summary-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+        }
+
+        .summary-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .causes-list, .solutions-list {
+            margin-bottom: 20px;
+        }
+
+        .causes-list h4, .solutions-list h4 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .causes-list ul, .solutions-list ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .causes-list li, .solutions-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            padding-left: 25px;
+        }
+
+        .causes-list li:before {
+            content: "⚠️";
+            position: absolute;
+            left: 0;
+        }
+
+        .solutions-list li:before {
+            content: "✅";
+            position: absolute;
+            left: 0;
+        }
+
+        .final-recommendation {
+            background: #28a745;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .final-recommendation h4 {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            background: #dc3545;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-network-wired"></i> Suporte Técnico Cisco</h1>
+            <p>Sistema Multi-Agent Inteligente para Diagnóstico de Problemas</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Formulário de Problema -->
+            <div class="card">
+                <h2><i class="fas fa-bug"></i> Reportar Problema</h2>
+                <form id="problemForm">
+                    <div class="form-group">
+                        <label for="problemDescription">Descrição do Problema *</label>
+                        <textarea 
+                            id="problemDescription" 
+                            name="problemDescription" 
+                            required 
+                            placeholder="Descreva detalhadamente o problema que está enfrentando com o equipamento Cisco..."
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="equipmentModel">Modelo do Equipamento</label>
+                        <input 
+                            type="text" 
+                            id="equipmentModel" 
+                            name="equipmentModel" 
+                            placeholder="Ex: Cisco Catalyst 2960, ASR 1000, etc."
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="errorMessages">Mensagens de Erro</label>
+                        <textarea 
+                            id="errorMessages" 
+                            name="errorMessages" 
+                            placeholder="Cole aqui as mensagens de erro que aparecem no console ou logs..."
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="networkConfig">Configuração de Rede</label>
+                        <textarea 
+                            id="networkConfig" 
+                            name="networkConfig" 
+                            placeholder="Cole aqui a configuração relevante do equipamento (show running-config, etc.)..."
+                        ></textarea>
+                    </div>
+
+                    <button type="submit" class="btn" id="submitBtn">
+                        <i class="fas fa-search"></i> Analisar Problema
+                    </button>
+                </form>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analisando problema com agentes especializados...</p>
+                </div>
+            </div>
+
+            <!-- Área de Resultados -->
+            <div class="card">
+                <h2><i class="fas fa-chart-line"></i> Análise e Resultados</h2>
+                <div id="results" class="results">
+                    <!-- Conteúdo será preenchido dinamicamente -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+
+        document.getElementById('problemForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results');
+            
+            // Mostrar loading
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            
+            try {
+                const formData = new FormData(e.target);
+                const requestData = {
+                    problem_description: formData.get('problemDescription'),
+                    equipment_model: formData.get('equipmentModel') || null,
+                    error_messages: formData.get('errorMessages') || null,
+                    network_config: formData.get('networkConfig') || null
+                };
+
+                const response = await fetch(`${API_BASE_URL}/analyze-problem`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+                displayResults(data);
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                results.innerHTML = `
+                    <div class="error">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Erro na Análise</h4>
+                        <p>Não foi possível analisar o problema. Verifique se o servidor está rodando e tente novamente.</p>
+                        <p><strong>Detalhes:</strong> ${error.message}</p>
+                    </div>
+                `;
+                results.style.display = 'block';
+            } finally {
+                // Esconder loading
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+
+        function displayResults(data) {
+            const results = document.getElementById('results');
+            
+            let html = `
+                <div class="summary-section">
+                    <h3><i class="fas fa-clipboard-list"></i> Resumo da Análise</h3>
+                    <p>${data.problem_analysis}</p>
+                </div>
+
+                <div class="causes-list">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Possíveis Causas</h4>
+                    <ul>
+                        ${data.possible_causes.map(cause => `<li>${cause}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="solutions-list">
+                    <h4><i class="fas fa-tools"></i> Soluções Recomendadas</h4>
+                    <ul>
+                        ${data.solutions.map(solution => `<li>${solution}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="final-recommendation">
+                    <h4><i class="fas fa-star"></i> Recomendação Final</h4>
+                    <p>${data.final_recommendation}</p>
+                </div>
+            `;
+
+            // Adicionar análises dos agentes
+            html += '<h3 style="margin-top: 30px; margin-bottom: 20px; color: #667eea;"><i class="fas fa-users"></i> Análises dos Especialistas</h3>';
+            
+            data.agent_responses.forEach(agent => {
+                const iconMap = {
+                    'Analista de Rede Cisco': 'fas fa-network-wired',
+                    'Especialista em Hardware Cisco': 'fas fa-microchip',
+                    'Especialista em Configuração Cisco': 'fas fa-cogs'
+                };
+                
+                html += `
+                    <div class="agent-section">
+                        <div class="agent-header">
+                            <div class="agent-icon">
+                                <i class="${iconMap[agent.agent_name] || 'fas fa-user'}"></i>
+                            </div>
+                            <div class="agent-name">${agent.agent_name}</div>
+                        </div>
+                        
+                        <div class="reasoning">
+                            <strong>Raciocínio:</strong> ${agent.reasoning}
+                        </div>
+                        
+                        <div class="findings">
+                            <h4><i class="fas fa-search"></i> Achados</h4>
+                            <ul>
+                                ${agent.findings.map(finding => `<li>${finding}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="recommendations">
+                            <h4><i class="fas fa-lightbulb"></i> Recomendações</h4>
+                            <ul>
+                                ${agent.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            });
+
+            results.innerHTML = html;
+            results.style.display = 'block';
+        }
+
+        // Verificar se o servidor está rodando
+        async function checkServerHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                if (response.ok) {
+                    console.log('Servidor está rodando');
+                }
+            } catch (error) {
+                console.warn('Servidor não está rodando:', error);
+            }
+        }
+
+        // Verificar saúde do servidor ao carregar a página
+        checkServerHealth();
+    </script>
+</body>
+</html>
