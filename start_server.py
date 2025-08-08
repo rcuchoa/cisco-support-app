@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Script para iniciar o servidor de suporte técnico Cisco
-"""
+""" 
 
 import os
 import sys
